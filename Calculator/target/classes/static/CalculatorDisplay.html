@@ -1,0 +1,173 @@
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'San Francisco', Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #bg{
+            width: 240px;
+            height: 530px;
+            background: black;
+        }
+
+        #screen{
+            position: relative;
+            top: 10px;
+            width: 95%;
+            height: 80px;
+            color: white;
+            font-size: 40px;
+            text-align: right;
+            margin-left: 5px;
+            overflow-y: auto;
+        }
+        .btn,.btn_grey,.btn_orange{
+            width: 50px;
+            height: 50px;
+            margin: 3px;
+            border-radius: 25px;
+            text-align: center;
+            line-height: 45px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn_grey{
+            background: #7C7C7C;
+            color: black;
+        }
+        .btn_orange{
+            background: #FC8E39;
+        }
+        .btn{
+            background: #2C2C2C;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="bg">
+    <div id="screen"></div>
+    <table id="keyboard">
+        <tr>
+            <td><div class="btn_grey" onclick="cfun()">del</div></td>
+            <td><div class="btn_grey" onclick="del()">C</div></td>
+            <td><div class="btn_grey" onclick="func('%')">%</div></td>
+            <td><div class="btn_orange" onclick="func('/')">/</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn" onclick="func('7')">7</div></td>
+            <td><div class="btn" onclick="func('8')">8</div></td>
+            <td><div class="btn" onclick="func('9')">9</div></td>
+            <td><div class="btn_orange" onclick="func('*')">*</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn" onclick="func('4')">4</div></td>
+            <td><div class="btn" onclick="func('5')">5</div></td>
+            <td><div class="btn" onclick="func('6')">6</div></td>
+            <<td><div class="btn_orange" onclick="func('-')">-</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn" onclick="func('1')">1</div></td>
+            <td><div class="btn" onclick="func('2')">2</div></td>
+            <td><div class="btn" onclick="func('3')">3</div></td>
+            <td><div class="btn_orange" onclick="func('+')">+</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn" onclick="func('0')">0</div></td>
+            <td><div class="btn" onclick="ans()">ans</div></td>
+            <td><div class="btn" onclick="func('.')">.</div></td>
+            <td><div class="btn_orange" onclick="func('π')">π</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn_orange" onclick="func('exp')">exp</div></td>
+            <td><div class="btn_orange" onclick="func('cos')">cos</div></td>
+            <td><div class="btn_orange" onclick="func('sin')">sin</div></td>
+            <td><div class="btn_orange" onclick="func('tan')">tan</div></td>
+        </tr>
+        <tr>
+            <td><div class="btn_orange" onclick="func('ln')">ln</div></td>
+            <td><div class="btn_orange" onclick="func('(')">(</div></td>
+            <td><div class="btn_orange" onclick="func(')')">)</div></td>
+            <td><div class="btn_orange" onclick="result()">=</div></td>
+
+        </tr>
+    </table>
+</div>
+<script>
+    var scr=document.getElementById("screen");
+    function del(){
+        scr.innerHTML="";
+    }
+    function cfun(){
+        var str=scr.innerHTML;
+        scr.innerHTML=str.slice(0,str.length-1);
+    }
+    function func(num){
+        var str=scr.innerHTML;
+        scr.innerHTML=str+num;
+    }
+    function result() {
+        const expression = scr.innerHTML;
+        fetch('/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                expression: expression
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                scr.innerHTML = data.result;
+            })
+            .catch(error => {
+                scr.innerHTML = "Error";
+                console.error('Error:', error);
+            });
+    }
+    function ans() {
+        fetch('/history')
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    scr.innerHTML = '';
+                    data.forEach(record => {
+                        const recordElement = document.createElement('div');
+                        recordElement.textContent = record.toString();
+                        recordElement.classList.add('history-record');
+                        scr.appendChild(recordElement);
+                    });
+                } else {
+                    scr.innerHTML = 'No history available.';
+                }
+            })
+            .catch(error => {
+                scr.innerHTML = 'Error: ' + error.message;
+                console.error('Error:', error);
+            });
+    }
+
+
+
+
+</script>
+</body>
+</html>
+
